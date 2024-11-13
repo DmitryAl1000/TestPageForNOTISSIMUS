@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <h2>Поиск по имени</h2>
+    <div>
+        <p>
+            <input type="text" size="50" id="searchTextBox" />
+            <button id="searchButton" type="submit" onclick="printSerchedProducts()"> Отправить </button>
+
+        </p>
+    </div>
+    <br />
+    <textarea id='feedback' name='feedback' rows='4' cols='67'></textarea>
+    
+    <table>
+        <thead><tr><th>Все доступные продукты:</th><th></th></tr></thead>
+        <tbody>
+        </tbody>
+    </table>
+    <p id='loading' name='loading'> Загрузка...</p>
+
+
+    <script>
+        async function printSerchedProducts()
+                {
+            const response = await fetch("/api/products", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            // если запрос прошел нормально
+            if (response.ok === true) {
+                const products = await response.json();
+                const serchString = document.getElementById('searchTextBox').value;
+                var serchStringlower = serchString.toLowerCase();
+                let result = '';
+
+                for (let i = 0; i < products.length; i++) {
+                    let obj = products[i];
+                    var objLower = obj.titleName.toLowerCase();
+                    if (objLower.includes(serchStringlower))
+                        result += obj.titleName + '\n';
+                }
+                $('#feedback').val(result);
+            }
+        }
+    </script>
+
+    <script>
+        async function getProducts() 
+        {
+            const response = await fetch("/api/products", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            // если запрос прошел нормально
+            if (response.ok === true) {
+                const products = await response.json();
+                const rows = document.querySelector("tbody");
+                products.forEach(product => rows.append(createRow(product)));
+            }
+            
+            loadingClearText();
+        }
+
+        // создание строки для таблицы
+        function createRow(product) {
+
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", product.id);
+
+            const nameTd = document.createElement("P");
+            nameTd.append(product.titleName);
+            tr.append(nameTd);
+
+            return tr;
+        }
+        function loadingClearText() {
+            document.getElementById('loading').innerText = '';
+        }
+
+        getProducts();
+    </script>
+</body>
+</html>
+
